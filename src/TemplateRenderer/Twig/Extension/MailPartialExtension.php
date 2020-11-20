@@ -6,31 +6,30 @@ use Daa\Library\Mail\Message\MessageInterface;
 use Daa\Library\Mail\TemplateRenderer\TemplateRenderingException;
 use Daa\Library\Mail\TemplateResolver\TemplateResolverInterface;
 use Daa\Library\Mail\TemplateResolver\UnresolvableException;
-use Twig_Environment;
-use Twig_Error;
+use Error;
+use Twig\Environment;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 
 /**
  * This twig extensions adds the ability to include partials into mails
  */
-class MailPartialExtension extends \Twig_Extension
+class MailPartialExtension extends AbstractExtension
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction(
+            new TwigFunction(
                 'partial',
                 [$this, 'twigPartial'],
                 ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['html']]
             ),
-            new \Twig_SimpleFunction(
+            new TwigFunction(
                 'partial_if_exists',
                 [$this, 'twigPartialIfExists'],
                 ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['html']]
             ),
-            new \Twig_SimpleFunction(
+            new TwigFunction(
                 'partial_string',
                 [$this, 'twigPartialString'],
                 ['needs_environment' => true, 'needs_context' => true, 'is_safe' => ['html']]
@@ -41,7 +40,7 @@ class MailPartialExtension extends \Twig_Extension
     /**
      * Include another template.
      *
-     * @param Twig_Environment $environment
+     * @param Environment $environment
      * @param array            $context
      * @param string           $partialKey
      * @param array            $overrides
@@ -49,7 +48,7 @@ class MailPartialExtension extends \Twig_Extension
      * @return string
      * @throws \Exception
      */
-    public function twigPartial(Twig_Environment $environment, array $context, $partialKey, array $overrides = [])
+    public function twigPartial(Environment $environment, array $context, $partialKey, array $overrides = [])
     {
         /** @var TemplateResolverInterface $templateResolver */
         $templateResolver = $context['template_resolver'];
@@ -64,7 +63,7 @@ class MailPartialExtension extends \Twig_Extension
 
         try {
             return $environment->createTemplate($template)->render($context);
-        } catch (Twig_Error $e) {
+        } catch (Error $e) {
             throw TemplateRenderingException::renderingFailed($partialKey, $e);
         }
     }
@@ -72,14 +71,14 @@ class MailPartialExtension extends \Twig_Extension
     /**
      * Include another template, but only if it exists. Otherwise it will be skipped.
      *
-     * @param Twig_Environment $environment
+     * @param Environment $environment
      * @param array             $context
      * @param string            $partialKey
      *
      * @return string
      * @throws \Exception
      */
-    public function twigPartialIfExists(Twig_Environment $environment, array $context, $partialKey)
+    public function twigPartialIfExists(Environment $environment, array $context, $partialKey)
     {
         try {
             return $this->twigPartial($environment, $context, $partialKey);
@@ -91,17 +90,17 @@ class MailPartialExtension extends \Twig_Extension
     /**
      * Include another template which is passed as parameter.
      *
-     * @param Twig_Environment $environment
+     * @param Environment $environment
      * @param array             $context
      * @param string            $partial
      *
      * @return string
      */
-    public function twigPartialString(Twig_Environment $environment, array $context, $partial)
+    public function twigPartialString(Environment $environment, array $context, $partial)
     {
         try {
             return $environment->createTemplate($partial)->render($context);
-        } catch (Twig_Error $e) {
+        } catch (Error $e) {
             throw TemplateRenderingException::renderingFailed($partial, $e);
         }
     }

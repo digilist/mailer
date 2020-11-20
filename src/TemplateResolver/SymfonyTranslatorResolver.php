@@ -3,7 +3,7 @@
 namespace Daa\Library\Mail\TemplateResolver;
 
 use Daa\Library\Mail\Message\MessageInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * This class resolves mail templates with the Symfony translator.

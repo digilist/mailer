@@ -1,6 +1,6 @@
 <?php
 
-namespace TemplateRenderer\Tests;
+namespace Daa\Library\Mail\TemplateRenderer\Tests;
 
 use Daa\Library\Mail\Message\MessageInterface;
 use Daa\Library\Mail\TemplateRenderer\TemplateRenderingException;
@@ -9,6 +9,8 @@ use Daa\Library\Mail\TemplateRenderer\TwigTemplateRenderer;
 use Daa\Library\Mail\TemplateResolver\InPlaceResolver;
 use Daa\Library\Mail\TemplateResolver\MapResolver;
 use PHPUnit\Framework\TestCase;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 
 class TwigTemplateRendererTest extends TestCase
 {
@@ -22,13 +24,13 @@ class TwigTemplateRendererTest extends TestCase
      */
     public function setUp()
     {
-        if (!class_exists(\Twig_Environment::class)) {
+        if (!class_exists(Environment::class)) {
             $this->markTestSkipped('Twig not installed.');
 
             return;
         }
 
-        $twig = new \Twig_Environment(new \Twig_Loader_Array());
+        $twig = new Environment(new ArrayLoader());
         $twig->addExtension(new MailPartialExtension());
         $this->renderer = new TwigTemplateRenderer($twig);
     }
@@ -109,7 +111,10 @@ class TwigTemplateRendererTest extends TestCase
                 'template_resolver' => $resolver,
             ]);
         } catch (TemplateRenderingException $e) {
-            $this->assertTrue(strpos($e->getMessage(), 'Template rendering for mail.template failed: An exception has been thrown during the rendering of a template ("Template rendering for other_template failed: Unexpected token "end of template" of value ""') === 0);
+            $this->assertTrue(
+                strpos($e->getMessage(), 'Template rendering for mail.template failed: Unexpected token "end of template" ("end of print statement" expected) in') === 0,
+                $e->getMessage()
+            );
         }
     }
 
@@ -170,7 +175,10 @@ class TwigTemplateRendererTest extends TestCase
                     'template_resolver' => new InPlaceResolver(),
                 ]);
         } catch (TemplateRenderingException $e) {
-            $this->assertTrue(strpos($e->getMessage(), 'Template rendering for mail.template failed: An exception has been thrown during the rendering of a template ("Template rendering for {% if true %}Hi Partial failed: Unexpected end of template in') === 0);
+            $this->assertTrue(
+                strpos($e->getMessage(), 'Template rendering for mail.template failed: Unexpected end of template in') === 0,
+                $e->getMessage()
+            );
         }
     }
 

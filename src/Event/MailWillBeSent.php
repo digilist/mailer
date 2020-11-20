@@ -1,38 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daa\Library\Mail\Event;
 
 use Daa\Library\Mail\Message\MailInterface;
 
-/**
- * Event class with payload for events around the sending of a mail. This class never has a message object.
- */
-class MailSendingEvent extends MailerEvent
+final class MailWillBeSent
 {
+    /**
+     * @var MailInterface
+     */
+    private $mail;
+
     /**
      * @var bool
      */
     private $sendingStopped = false;
 
-    /**
-     * @param MailInterface $mail
-     */
     public function __construct(MailInterface $mail)
     {
-        parent::__construct(null, $mail);
+        $this->mail = $mail;
+    }
+
+    public function getMail(): MailInterface
+    {
+        return $this->mail;
     }
 
     /**
      * Prevent the mail from being sent.
      */
-    public function stopSendingMail()
+    public function stopSendingMail(): void
     {
         $this->sendingStopped = true;
     }
 
-    /**
-     * @return bool
-     */
     public function isSendingStopped(): bool
     {
         return $this->sendingStopped;

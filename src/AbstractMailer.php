@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daa\Library\Mail;
 
 use Closure;
-use Daa\Library\Mail\Event\MailerEvent;
+use Daa\Library\Mail\Event\MessageRendered;
+use Daa\Library\Mail\Event\MessageWillBeRendered;
 use Daa\Library\Mail\Message\AttachmentMessageInterface;
 use Daa\Library\Mail\Message\Mail;
 use Daa\Library\Mail\Message\MailInterface;
@@ -43,11 +46,6 @@ abstract class AbstractMailer implements MailerInterface
      */
     protected $eventDispatcher;
 
-    /**
-     * @param TemplateResolverInterface $templateResolver
-     * @param TemplateRendererInterface $templateRenderer
-     * @param EventDispatcherInterface  $eventDispatcher
-     */
     public function __construct(
         TemplateResolverInterface $templateResolver,
         TemplateRendererInterface $templateRenderer,
@@ -101,26 +99,16 @@ abstract class AbstractMailer implements MailerInterface
         return $this->senders[$id][$locale];
     }
 
-    /**
-     * @param MessageInterface $message
-     *
-     * @return void
-     */
-    public function sendMessage(MessageInterface $message)
+    public function sendMessage(MessageInterface $message): void
     {
         $mail = $this->renderMessage($message);
 
         $this->sendMail($mail);
     }
 
-    /**
-     * @param MessageInterface $message
-     *
-     * @return MailInterface
-     */
-    public function renderMessage(MessageInterface $message)
+    public function renderMessage(MessageInterface $message): MailInterface
     {
-        $this->eventDispatcher->dispatch(MailerEvents::beforeRendering, new MailerEvent($message));
+        $this->eventDispatcher->dispatch(new MessageWillBeRendered($message), MailerEvents::beforeRendering);
 
         $mail = new Mail();
         $mail
@@ -132,7 +120,7 @@ abstract class AbstractMailer implements MailerInterface
             $mail->setAttachments($message->getAttachments());
         }
 
-        $this->eventDispatcher->dispatch(MailerEvents::afterRendering, new MailerEvent($message, $mail));
+        $this->eventDispatcher->dispatch(new MessageRendered($message, $mail), MailerEvents::afterRendering);
 
         return $mail;
     }

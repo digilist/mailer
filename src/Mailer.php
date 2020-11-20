@@ -2,7 +2,8 @@
 
 namespace Daa\Library\Mail;
 
-use Daa\Library\Mail\Event\MailSendingEvent;
+use Daa\Library\Mail\Event\MailSent;
+use Daa\Library\Mail\Event\MailWillBeSent;
 use Daa\Library\Mail\Message\MailInterface;
 use Daa\Library\Mail\Sender\NullSender;
 use Daa\Library\Mail\Sender\SmtpSender;
@@ -39,30 +40,22 @@ class Mailer extends AbstractMailer
 
     /**
      * Add a transport for mails which have a sender of the given class.
-     *
-     * @param string             $senderClass
-     * @param TransportInterface $transport
-     *
-     * @return void
      */
-    public function registerTransport($senderClass, TransportInterface $transport)
+    public function registerTransport(string $senderClass, TransportInterface $transport): void
     {
         $this->transports[$senderClass] = $transport;
     }
 
-    /**
-     * @param MailInterface $mail
-     */
-    public function sendMail(MailInterface $mail)
+    public function sendMail(MailInterface $mail): void
     {
-        $event = new MailSendingEvent($mail);
-        $this->eventDispatcher->dispatch(MailerEvents::beforeSending, $event);
+        $event = new MailWillBeSent($mail);
+        $this->eventDispatcher->dispatch($event, MailerEvents::beforeSending);
 
         if (!$event->isSendingStopped()) {
             $transport = $this->transports[get_class($mail->getSender())];
             $transport->sendMail($mail);
 
-            $this->eventDispatcher->dispatch(MailerEvents::afterSending, $event);
+            $this->eventDispatcher->dispatch(new MailSent($mail), MailerEvents::afterSending);
         }
     }
 }

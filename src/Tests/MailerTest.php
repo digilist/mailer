@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daa\Library\Mail\Tests;
 
-use Daa\Library\Mail\Event\MailSendingEvent;
+use Daa\Library\Mail\Event\MailSent;
+use Daa\Library\Mail\Event\MailWillBeSent;
 use Daa\Library\Mail\Mailer;
 use Daa\Library\Mail\MailerEvents;
 use Daa\Library\Mail\Message\Attachment;
@@ -12,7 +15,6 @@ use Daa\Library\Mail\Message\Mail;
 use Daa\Library\Mail\Message\Message;
 use Daa\Library\Mail\RecipientContainer;
 use Daa\Library\Mail\Sender\NullSender;
-use Daa\Library\Mail\Sender\SenderInterface;
 use Daa\Library\Mail\TemplateRenderer\TemplateRendererInterface;
 use Daa\Library\Mail\TemplateResolver\TemplateResolverInterface;
 use Daa\Library\Mail\Transport\TransportInterface;
@@ -149,7 +151,7 @@ class MailerTest extends TestCase
         $this->mailer->registerTransport(NullSender::class, $transport->reveal());
 
         // Handle events
-        $this->eventDispatcher->addListener(MailerEvents::beforeSending, function (MailSendingEvent $e) {
+        $this->eventDispatcher->addListener(MailerEvents::beforeSending, function (MailWillBeSent $e) {
             $e->stopSendingMail();
         });
         $this->eventDispatcher->addListener(MailerEvents::afterSending, function () {
