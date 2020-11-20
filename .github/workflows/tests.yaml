@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    tests:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                php: [7.1, 7.2, 7.3, 7.4]
+                symfony: [^4.4, ^5.0]
+                twig: [^2.0, ^3.0]
+                swiftmailer: [^5.4, ^6.0]
+                exclude:
+                    - symfony: ^5.0
+                      php: 7.1
+                    - twig: ^3.0
+                      php: 7.1
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  tools: composer:v2
+
+            - name: Install dependencies
+              run: |
+                composer require \
+                    symfony/event-dispatcher:${{ matrix.symfony }} \
+                    symfony/translation:${{ matrix.symfony }} \
+                    twig/twig:${{ matrix.twig }} \
+                    swiftmailer/swiftmailer:${{ matrix.swiftmailer }}
+
+            - name: PHPUnit
+              run: vendor/bin/phpunit
